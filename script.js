@@ -1,16 +1,17 @@
 // script.js (modül olarak import ediliyor)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
 import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, where, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js"; // Auth modülleri eklendi
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
 
-// Firebase config (BURAYI KENDİ BİLGİLERİNLE DEĞİŞTİR!)
+// Firebase config (BU KISIM SİZİN SAĞLADIĞINIZ BİLGİLERLE GÜNCELLENDİ!)
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY", // Firebase Konsolundan
-  authDomain: "YOUR_AUTH_DOMAIN", // Firebase Konsolundan
-  projectId: "YOUR_PROJECT_ID", // Firebase Konsolundan
-  storageBucket: "YOUR_STORAGE_BUCKET", // Firebase Konsolundan
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // Firebase Konsolundan
-  appId: "YOUR_APP_ID" // Firebase Konsolundan
+  apiKey: "AIzaSyAmy3tU95GoWD92KsQfQiUQQ_RK-ER_8a0",
+  authDomain: "color-grid-7d73f.firebaseapp.com",
+  projectId: "color-grid-7d73f",
+  storageBucket: "color-grid-7d73f.firebasestorage.app",
+  messagingSenderId: "20551637017",
+  appId: "1:20551637017:web:65e439cc83a3d4bf1d3288",
+  measurementId: "G-5VE8JXRKYY" // Bu bilgi de Firebase konsolundan geldiği için ekledik
 };
 
 // Firebase Uygulamasını Başlat
@@ -124,7 +125,7 @@ const updateButtonState = () => {
         addBtn.disabled = true;
         addBtn.textContent = `Wait (${remainingSeconds}s)`;
         // Her saniye güncelleme için setTimeout, kalan saniye 0 olana kadar
-        setTimeout(updateButtonState, 1000); 
+        setTimeout(updateButtonState, 1000);
     } else {
         addBtn.disabled = false;
         addBtn.textContent = "Add Letter";
