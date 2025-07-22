@@ -4,22 +4,24 @@ import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTim
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
 
 // Firebase config (BU KISIM SİZİN SAĞLADIĞINIZ BİLGİLERLE GÜNCELLENDİ!)
+// Lütfen buradaki 'apiKey', 'authDomain', 'projectId' gibi bilgilerin Firebase konsolunuzdaki proje ayarlarıyla EŞLEŞTİĞİNDEN EMİN OLUN.
 const firebaseConfig = {
-  apiKey: "AIzaSyAmy3tU95GoWD92KsQfQiUQQ_RK-ER_8a0",
-  authDomain: "color-grid-7d73f.firebaseapp.com",
-  projectId: "color-grid-7d73f",
-  storageBucket: "color-grid-7d73f.firebasestorage.app",
+  apiKey: "AIzaSyAmy3tU95GoWD92KsQfQiUQQ_RK-ER_8a0", // Sizin API key'iniz
+  authDomain: "color-grid-7d73f.firebaseapp.com", // Sizin Auth Domain'iniz
+  projectId: "color-grid-7d73f", // Sizin Proje ID'niz
+  storageBucket: "color-grid-7d73f.appspot.com",
   messagingSenderId: "20551637017",
   appId: "1:20551637017:web:65e439cc83a3d4bf1d3288",
-  measurementId: "G-5VE8JXRKYY" // Bu bilgi de Firebase konsolundan geldiği için ekledik
+  measurementId: "G-5VE8JXRKYY" 
 };
 
-// Firebase Uygulamasını Başlat
+// Firebase uygulamasını başlat
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth(app); // Auth servisini başlat
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
-// HTML Elementleri
+// HTML elementlerini al
 const authContainer = document.getElementById("auth-container");
 const gameContainer = document.getElementById("game-container");
 const signInBtn = document.getElementById("signInBtn");
@@ -29,130 +31,101 @@ const colorInput = document.getElementById("colorInput");
 const addBtn = document.getElementById("addBtn");
 const letterBoard = document.getElementById("letterBoard");
 
-// Global Değişkenler
-let currentUser = null; // Giriş yapan kullanıcı bilgisi
-let lastWriteTimestamp = null;
-const WAIT_TIME = 5 * 60 * 1000; // 5 minutes wait time
+let currentUser = null; // Şu anki kullanıcıyı saklamak için
+let lastWriteTimestamp = null; // Son yazma zamanını tutar
+const WAIT_TIME = 5 * 60 * 1000; // 5 dakika bekleme süresi (milisaniye cinsinden)
 
-// --- Firebase Authentication ---
-
-// Google ile Giriş Yap
-signInBtn.addEventListener("click", async () => {
-  const provider = new GoogleAuthProvider();
-  try {
-    await signInWithPopup(auth, provider);
-    // onAuthStateChanged listener'ı zaten UI'ı güncelleyecek
-  } catch (error) {
-    console.error("Error signing in with Google:", error);
-    alert("Failed to sign in. Please try again.");
-  }
+// Giriş butonuna tıklama dinleyicisi
+signInBtn.addEventListener("click", () => {
+  signInWithPopup(auth, provider)
+    .then((result) => {
+      // Başarılı giriş
+      console.log("User signed in:", result.user.displayName);
+      // onAuthStateChanged zaten UI'yı güncelleyecektir
+    })
+    .catch((error) => {
+      // Hata durumunda
+      console.error("Sign-in error:", error);
+      alert("Failed to sign in. Please try again. Check console for details.");
+    });
 });
 
-// Çıkış Yap
-signOutBtn.addEventListener("click", async () => {
-  try {
-    await signOut(auth);
-    // onAuthStateChanged listener'ı zaten UI'ı güncelleyecek
-  } catch (error) {
-    console.error("Error signing out:", error);
-    alert("Failed to sign out. Please try again.");
-  }
+// Çıkış butonuna tıklama dinleyicisi
+signOutBtn.addEventListener("click", () => {
+  signOut(auth)
+    .then(() => {
+      console.log("User signed out.");
+      // onAuthStateChanged zaten UI'yı güncelleyecektir
+    })
+    .catch((error) => {
+      console.error("Sign-out error:", error);
+      alert("Failed to sign out. Please try again.");
+    });
 });
 
-// Kullanıcı oturum durumu değiştiğinde çalışır
+// Kimlik doğrulama durumu değiştiğinde çalışır
 onAuthStateChanged(auth, (user) => {
   if (user) {
     // Kullanıcı giriş yaptı
     currentUser = user;
     authContainer.style.display = "none";
     gameContainer.style.display = "block";
-    console.log("User signed in:", currentUser.displayName, currentUser.uid);
-    // Son yazma zaman damgasını kontrol et (Firebase'den)
-    checkLastWrite();
-    // LetterBoard'u dinlemeye başla
-    listenToLetters();
+    
+    // Kullanıcının son yazma zamanını kontrol et ve butonu güncelle
+    checkLastWriteTime(currentUser.uid);
+    startRealtimeListener(); // Giriş yapınca notları dinlemeye başla
+    console.log("Current user:", currentUser.displayName, currentUser.uid);
+
   } else {
     // Kullanıcı çıkış yaptı
     currentUser = null;
     authContainer.style.display = "block";
     gameContainer.style.display = "none";
-    letterBoard.innerHTML = ""; // Board'u temizle
-    addBtn.disabled = false; // Butonu etkinleştir
-    addBtn.textContent = "Add Letter";
-    console.log("User signed out.");
+    // Çıkış yapınca notları temizle
+    letterBoard.innerHTML = ""; 
+    addBtn.disabled = false; // Butonu tekrar aktif et
+    console.log("No user signed in.");
   }
 });
 
-// --- Firestore (Letter Board) İşlemleri ---
+// Kullanıcının son yazma zamanını kontrol eden fonksiyon
+const checkLastWriteTime = async (uid) => {
+  const q = query(
+    collection(db, "letters"),
+    where("userId", "==", uid),
+    orderBy("createdAt", "desc"),
+    limit(1)
+  );
 
-// Son yazma zaman damgasını Firebase'den kontrol et
-const checkLastWrite = async () => {
-    if (!currentUser) return; // Kullanıcı yoksa kontrol etme
-
-    const q = query(
-        collection(db, "letters"),
-        where("userId", "==", currentUser.uid), // currentUser.uid kullan
-        orderBy("createdAt", "desc"),
-        limit(1)
-    );
-    try {
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-            const doc = querySnapshot.docs[0];
-            // Firebase Timestamp nesnesini Date nesnesine çevir
-            lastWriteTimestamp = doc.data().createdAt.toDate().getTime();
-            updateButtonState();
-        } else {
-            lastWriteTimestamp = null; // Hiç yazmamışsa
-            updateButtonState();
-        }
-    } catch (e) {
-        console.error("Error checking last write:", e);
-    }
-};
-
-// Buton durumunu güncelleme fonksiyonu
-const updateButtonState = () => {
-    if (!currentUser) { // Kullanıcı yoksa butonu devre dışı bırak
-        addBtn.disabled = true;
-        addBtn.textContent = "Sign in to add";
-        return;
-    }
-
-    const now = Date.now();
-    if (lastWriteTimestamp && (now - lastWriteTimestamp) < WAIT_TIME) {
-        const remainingSeconds = Math.ceil((WAIT_TIME - (now - lastWriteTimestamp)) / 1000);
-        addBtn.disabled = true;
-        addBtn.textContent = `Wait (${remainingSeconds}s)`;
-        // Her saniye güncelleme için setTimeout, kalan saniye 0 olana kadar
-        setTimeout(updateButtonState, 1000);
+  try {
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      const latestDoc = querySnapshot.docs[0].data();
+      lastWriteTimestamp = latestDoc.createdAt ? latestDoc.createdAt.toMillis() : null;
     } else {
-        addBtn.disabled = false;
-        addBtn.textContent = "Add Letter";
+      lastWriteTimestamp = null; // Hiç yazmamışsa
     }
+    updateAddButtonState(); // Buton durumunu güncelle
+  } catch (error) {
+    console.error("Error checking last write time:", error);
+    lastWriteTimestamp = null;
+    updateAddButtonState(); // Hata durumunda da butonu güncelle
+  }
 };
 
-// Harfleri gerçek zamanlı dinle
-const listenToLetters = () => {
-  const lettersCol = collection(db, "letters");
-  const q = query(lettersCol, orderBy("createdAt"));
-
-  // Sadece kullanıcı giriş yaptığında dinleyiciyi etkinleştir
-  onSnapshot(q, (snapshot) => {
-    letterBoard.innerHTML = ""; // Mevcut içeriği temizle
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const span = document.createElement("span");
-      span.textContent = data.letter;
-      span.style.color = data.color;
-      span.classList.add("letter");
-      letterBoard.appendChild(span);
-    });
-  }, (error) => {
-    console.error("Error listening to letters:", error);
-  });
+// Ekle butonunun durumunu güncelleyen fonksiyon
+const updateAddButtonState = () => {
+  const now = Date.now();
+  if (lastWriteTimestamp && (now - lastWriteTimestamp) < WAIT_TIME) {
+    addBtn.disabled = true;
+    const timeLeft = Math.ceil((WAIT_TIME - (now - lastWriteTimestamp)) / 1000);
+    // Buton metnini bekleme süresiyle güncelle, bu kısmı HTML'de gösterilebilir
+    // Örneğin: addBtn.textContent = `Bekle (${timeLeft}s)`;
+  } else {
+    addBtn.disabled = false;
+    addBtn.textContent = "Add Letter"; // Metni orijinaline döndür
+  }
 };
-
 
 // Add Letter butonuna tıklanınca
 addBtn.addEventListener("click", async () => {
@@ -165,7 +138,7 @@ addBtn.addEventListener("click", async () => {
   const color = colorInput.value;
 
   // Harf doğrulama
-  if (!letter.match(/^[A-ZÇĞİÖŞÜ]$/i)) {
+  if (!letter.match(/^[A-ZÇĞİÖŞÜ]$/i)) { // Türkçe karakterleri de dahil et
     alert("Please enter a single letter (e.g., 'A' or 'ç').");
     return;
   }
@@ -178,21 +151,49 @@ addBtn.addEventListener("click", async () => {
   }
 
   try {
+    // Firestore'a yeni bir belge ekle
     await addDoc(collection(db, "letters"), {
       letter: letter,
       color: color,
-      createdAt: serverTimestamp(),
+      createdAt: serverTimestamp(), // Sunucu zaman damgası
       userId: currentUser.uid, // Giriş yapan kullanıcının UID'sini kaydet
       userName: currentUser.displayName // Kullanıcı adını da kaydedebiliriz (isteğe bağlı)
     });
+
     lastWriteTimestamp = now; // Başarılı yazmadan sonra zaman damgasını güncelle
+    updateAddButtonState(); // Buton durumunu güncelle
     letterInput.value = ""; // Inputu temizle
-    updateButtonState(); // Buton durumunu güncelle
+
   } catch (e) {
     console.error("Error adding document: ", e);
-    alert("Failed to add letter. Please try again.");
+    alert("Error adding letter. Please try again.");
   }
 });
 
-// Sayfa ilk yüklendiğinde buton durumunu ayarla (kullanıcı henüz giriş yapmadıysa)
-updateButtonState();
+// Harfleri gerçek zamanlı dinle
+// Sadece kullanıcı giriş yaptığında dinleyiciyi başlat
+let unsubscribe = null; // Dinleyiciyi tutmak için değişken
+
+const startRealtimeListener = () => {
+  if (unsubscribe) {
+    unsubscribe(); // Önceki dinleyiciyi durdur
+  }
+
+  const lettersCol = collection(db, "letters");
+  // Yeni eklenen harflerin en üstte görünmesi için 'desc' (azalan) sıralama
+  const q = query(lettersCol, orderBy("createdAt", "desc")); 
+
+  unsubscribe = onSnapshot(q, (snapshot) => {
+    letterBoard.innerHTML = ""; // Mevcut tüm harfleri temizle
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const span = document.createElement("span");
+      span.textContent = data.letter;
+      span.style.color = data.color;
+      span.classList.add("letter");
+      letterBoard.appendChild(span);
+    });
+  }, (error) => {
+    console.error("Error listening to letters:", error);
+  });
+};

@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Collaborative Letter Board</title>
+  
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+  
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -14,9 +18,20 @@
   </div>
 
   <div id="game-container" style="display: none;">
+    <button id="signOutBtn" class="sign-out-top-right">Sign Out</button>
     <h2>Collaborative Letter Board</h2>
     <p>Choose a letter and a color, then click 'Add' to contribute a single letter to the board. Every contribution helps build something unique!</p>
 
+    <div class="ad-container" style="margin: 20px auto; text-align: center;">
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+      <ins class="adsbygoogle"
+           style="display:block; min-height: 100px;" data-ad-client="ca-pub-XXXXXXXXXXXXXX"
+           data-ad-slot="YYYYYYYYYY"
+           data-full-width-responsive="true"></ins>
+      <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
+    </div>
     <div class="input-section">
       <label for="letterInput">Letter:</label>
       <input type="text" id="letterInput" maxlength="1" placeholder="Enter a single letter" />
@@ -28,8 +43,7 @@
     </div>
     
     <button id="addBtn">Add Letter</button>
-    <button id="signOutBtn">Sign Out</button>
-
+    
     <div id="letterBoard"></div>
   </div>
 
