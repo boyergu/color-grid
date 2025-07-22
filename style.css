@@ -1,34 +1,123 @@
 body {
-  font-family: monospace;
+  font-family: Arial, sans-serif;
+  max-width: 600px;
+  margin: 30px auto;
+  padding: 20px;
   text-align: center;
-  margin: 0;
+  background-color: #f4f4f4;
+  color: #333;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  border-radius: 8px;
+}
+
+h2 {
+  color: #2c3e50;
+  margin-bottom: 15px;
+}
+
+p {
+  font-size: 1.1em;
+  margin-bottom: 25px;
+  line-height: 1.5;
+}
+
+.input-section {
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+label {
+  margin-right: 10px;
+  font-weight: bold;
+  color: #555;
+}
+
+input[type="text"],
+input[type="color"] {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1em;
+}
+
+input[type="color"] {
+  width: 60px; /* Daha küçük bir renk seçici */
+  height: 35px;
+  padding: 2px;
+}
+
+button {
+  background-color: #3498db;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  margin: 5px;
+  transition: background-color 0.3s ease;
+}
+
+button:hover:not(:disabled) {
+  background-color: #2980b9;
+}
+
+button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+#signInBtn {
+  background-color: #dd4b39; /* Google kırmızısı */
+}
+
+#signInBtn:hover {
+  background-color: #c23321;
+}
+
+#signOutBtn {
+  background-color: #e74c3c; /* Kırmızımsı bir çıkış butonu */
+}
+
+#signOutBtn:hover {
+  background-color: #c0392b;
+}
+
+#letterBoard {
+  margin-top: 30px;
+  border: 1px solid #ddd;
+  min-height: 300px;
+  max-height: 500px; /* Max yükseklik eklendi */
+  overflow-y: auto; /* Kaydırma çubuğu eklendi */
   padding: 10px;
   background: #f9f9f9;
+  word-wrap: break-word; /* Uzun kelimeleri böler */
+  font-size: 24px;
+  text-align: left; /* Harfler soldan başlasın */
+  border-radius: 4px;
+  box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
 }
-#grid {
-  display: grid;
-  grid-template-columns: repeat(50, 20px);
-  grid-template-rows: repeat(50, 20px);
-  gap: 1px;
-  margin: 0 auto;
-  width: fit-content;
-}
-.cell {
-  width: 20px;
-  height: 20px;
-  border: 1px solid #ddd;
+
+.letter {
   font-weight: bold;
-  font-size: 14px;
-  line-height: 20px;
-  user-select: none;
-  cursor: pointer;
-  color: black;
-  background-color: white;
+  margin: 0 3px; /* Harfler arasında boşluk */
+  display: inline-block; /* Yan yana durmaları için */
+  line-height: 1.5; /* Satır aralığı */
 }
-input[type="text"] {
-  width: 30px;
-  text-transform: uppercase;
-  font-weight: bold;
-  font-size: 16px;
-  text-align: center;
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  body {
+    margin: 15px;
+    padding: 15px;
+  }
+  .input-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  label {
+    margin-bottom: 5px;
+  }
 }

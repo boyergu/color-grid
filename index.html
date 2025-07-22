@@ -2,47 +2,37 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Letter Grid Web App</title>
+  <title>Collaborative Letter Board</title>
   <link rel="stylesheet" href="style.css" />
-
-  <!-- Firebase App (gerekli) -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-
-  <!-- Firestore (verileri kaydetmek için) -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
-
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyAmy3tU95GoWD92KsQfQiUQQ_RK-ER_8a0",
-      authDomain: "color-grid-7d73f.firebaseapp.com",
-      projectId: "color-grid-7d73f",
-      storageBucket: "color-grid-7d73f.appspot.com",
-      messagingSenderId: "20551637017",
-      appId: "1:20551637017:web:65e439cc83a3d4bf1d3288",
-      measurementId: "G-5VE8JXRKYY"
-    };
-
-    // Firebase'i başlat
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-  </script>
 </head>
 <body>
 
-  <h2>Simple Letter Grid 50x50</h2>
-  <p>Pick letter and color, then click on a cell.</p>
+  <div id="auth-container">
+    <h2>Welcome to the Collaborative Letter Board!</h2>
+    <p>Please sign in to start contributing.</p>
+    <button id="signInBtn">Sign in with Google</button>
+  </div>
 
-  <label>
-    Letter: 
-    <input type="text" id="letterInput" maxlength="1" />
-  </label>
-  <label>
-    Color:
-    <input type="color" id="colorInput" value="#000000" />
-  </label>
+  <div id="game-container" style="display: none;">
+    <h2>Collaborative Letter Board</h2>
+    <p>Choose a letter and a color, then click 'Add' to contribute a single letter to the board. Every contribution helps build something unique!</p>
 
-  <div id="grid"></div>
+    <div class="input-section">
+      <label for="letterInput">Letter:</label>
+      <input type="text" id="letterInput" maxlength="1" placeholder="Enter a single letter" />
+    </div>
+    
+    <div class="input-section">
+      <label for="colorInput">Color:</label>
+      <input type="color" id="colorInput" value="#000000" />
+    </div>
+    
+    <button id="addBtn">Add Letter</button>
+    <button id="signOutBtn">Sign Out</button>
 
-  <script src="script.js"></script>
+    <div id="letterBoard"></div>
+  </div>
+
+  <script src="script.js" type="module"></script>
 </body>
 </html>
