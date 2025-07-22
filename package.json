@@ -1,0 +1,23 @@
+{
+  "name": "color-grid",
+  "version": "1.0.0",
+  "description": "",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/boyergu/color-grid.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/boyergu/color-grid/issues"
+  },
+  "homepage": "https://github.com/boyergu/color-grid#readme",
+  "dependencies": {
+    "firebase": "^12.0.0"
+  }
+}

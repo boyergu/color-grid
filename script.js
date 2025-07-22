@@ -1,61 +1,60 @@
-const grid = document.getElementById('grid');
-const letterInput = document.getElementById('letterInput');
-const colorInput = document.getElementById('colorInput');
+const gridSize = 50;
+const grid = document.getElementById("grid");
+const letterInput = document.getElementById("letterInput");
+const colorInput = document.getElementById("colorInput");
 
-let placedAt = null; // zaman kontrolü için
+// Firebase Firestore referansı
+const db = firebase.firestore();
+const gridRef = db.collection("grid");
 
-// 50x50 grid oluştur
-for(let i=0; i<2500; i++) {
-  const cell = document.createElement('div');
-  cell.classList.add('cell');
-  cell.dataset.index = i;
-  grid.appendChild(cell);
-}
+// Grid oluştur
+for (let row = 0; row < gridSize; row++) {
+  const rowDiv = document.createElement("div");
+  rowDiv.classList.add("row");
 
-function canPlaceLetter() {
-  if(!placedAt) return true;
-  const diff = Date.now() - placedAt;
-  return diff > 5*60*1000; // 5 dakika
-}
+  for (let col = 0; col < gridSize; col++) {
+    const cell = document.createElement("div");
+    cell.classList.add("cell");
+    cell.dataset.row = row;
+    cell.dataset.col = col;
 
-function updateTimer() {
-  if(!placedAt) return;
-  const remaining = 5*60*1000 - (Date.now() - placedAt);
-  if(remaining <= 0) {
-    placedAt = null;
-    letterInput.disabled = false;
-    colorInput.disabled = false;
-  } else {
-    letterInput.disabled = true;
-    colorInput.disabled = true;
-  }
-}
+    cell.addEventListener("click", async () => {
+      const letter = letterInput.value;
+      const color = colorInput.value;
 
-grid.addEventListener('click', e => {
-  if(!e.target.classList.contains('cell')) return;
+      if (letter) {
+        cell.textContent = letter;
+        cell.style.color = color;
 
-  if(!canPlaceLetter()) {
-    alert("You can only place a letter every 5 minutes.");
-    return;
-  }
+        // Firebase'e kaydet
+        await gridRef.doc(`${row}-${col}`).set({
+          row,
+          col,
+          letter,
+          color
+        });
+      }
+    });
 
-  const letter = letterInput.value.toUpperCase();
-  const color = colorInput.value;
-
-  if(!letter.match(/^[A-Z0-9]$/)) {
-    alert("Please enter a valid letter (A-Z or 0-9).");
-    return;
+    rowDiv.appendChild(cell);
   }
 
-  e.target.textContent = letter;
-  e.target.style.color = color;
+  grid.appendChild(rowDiv);
+}
 
-  placedAt = Date.now();
-  letterInput.value = "";
-  letterInput.disabled = true;
-  colorInput.disabled = true;
-});
+// Firebase'den verileri yükle
+async function loadGrid() {
+  const snapshot = await gridRef.get();
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const selector = `.cell[data-row='${data.row}'][data-col='${data.col}']`;
+    const cell = document.querySelector(selector);
+    if (cell) {
+      cell.textContent = data.letter;
+      cell.style.color = data.color;
+    }
+  });
+}
 
-setInterval(() => {
-  updateTimer();
-}, 1000);
+// Sayfa yüklenince verileri getir
+loadGrid();

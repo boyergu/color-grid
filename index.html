@@ -4,6 +4,28 @@
   <meta charset="UTF-8" />
   <title>Letter Grid Web App</title>
   <link rel="stylesheet" href="style.css" />
+
+  <!-- Firebase App (gerekli) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+
+  <!-- Firestore (verileri kaydetmek için) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAmy3tU95GoWD92KsQfQiUQQ_RK-ER_8a0",
+      authDomain: "color-grid-7d73f.firebaseapp.com",
+      projectId: "color-grid-7d73f",
+      storageBucket: "color-grid-7d73f.appspot.com",
+      messagingSenderId: "20551637017",
+      appId: "1:20551637017:web:65e439cc83a3d4bf1d3288",
+      measurementId: "G-5VE8JXRKYY"
+    };
+
+    // Firebase'i başlat
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
 </head>
 <body>
 
